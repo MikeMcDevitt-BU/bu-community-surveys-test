@@ -1,86 +1,195 @@
-import Image from 'next/image'
-import styles from './page.module.css'
+import { useState } from "react";
 
-export default function Home() {
+function ProductCategoryRow({ category }) {
   return (
-    <main className={styles.main}>
-      <div className={styles.description}>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>app/page.tsx</code>
-        </p>
-      </div>
+    <tr>
+      <th colSpan="2">{category}</th>
+    </tr>
+  );
+}
 
-      <div className={styles.center}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
+function ProductRow({ product }) {
+  const Title = product.active ? (
+    product.Title
+  ) : (
+    <span style={{ color: "red" }}>{product.Title}</span>
+  );
+
+  return (
+    <tr>
+      <th scope="row">{Title}</th>
+      <td>{product.Sponsor}</td>
+    </tr>
+  );
+}
+
+function ProductTable({ products, filterText, activeOnly }) {
+  const rows = [];
+  let lastCategory = null;
+
+  products.forEach((product) => {
+    if (product.Title.toLowerCase().indexOf(filterText.toLowerCase()) === -1) {
+      return;
+    }
+    if (activeOnly && !product.active) {
+      return;
+    }
+    if (product.category !== lastCategory) {
+      rows.push(
+        <ProductCategoryRow
+          category={product.category}
+          key={product.category}
         />
-        <span>+</span>
-        <Image
-          src="/amplify.svg"
-          alt="Amplify Logo"
-          width={45}
-          height={37}
-          priority
-        />
-      </div>
+      );
+    }
+    rows.push(<ProductRow product={product} key={product.Title} />);
+    lastCategory = product.category;
+  });
 
-      <div className={styles.grid}>
-        <a
-          href="https://docs.amplify.aws/gen2/"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p>Review documentation for Amplify's code-first DX (Gen 2).</p>
-        </a>
+  return (
+    <table>
+      <caption>List of BU Community Surveys</caption>
+      <thead>
+        <tr>
+          <th scope="col">Title</th>
+          <th scope="col">Sponsor</th>
+        </tr>
+      </thead>
+      <tbody>{rows}</tbody>
+    </table>
+  );
+}
 
-        <a
-          href="https://docs.amplify.aws/gen2/start/quickstart/"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Quickstart <span>-&gt;</span>
-          </h2>
-          <p>Follow a tutorial to build a fullstack app with Amplify Gen 2.</p>
-        </a>
+function SearchBar({
+  filterText,
+  activeOnly,
+  onFilterTextChange,
+  onActiveOnlyChange,
+}) {
+  return (
+    <form>
+      <input
+        type="text"
+        value={filterText}
+        placeholder="Search..."
+        onChange={(e) => onFilterTextChange(e.target.value)}
+      />
+      <label>
+        <input
+          type="checkbox"
+          checked={activeOnly}
+          onChange={(e) => onActiveOnlyChange(e.target.checked)}
+        />{" "}
+        Only show active surveys
+      </label>
+    </form>
+  );
+}
 
-        <a
-          href="https://docs.amplify.aws/gen2/build-a-backend/auth/set-up-auth/"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Auth <span>-&gt;</span>
-          </h2>
-          <p>Zero-config Auth UI components with social sign-in and MFA.</p>
-        </a>
+function FilterableProductTable({ products }) {
+  const [filterText, setFilterText] = useState("");
+  const [activeOnly, setActiveOnly] = useState(false);
 
-        <a
-          href="https://docs.amplify.aws/gen2/build-a-backend/data/set-up-data/"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Data <span>-&gt;</span>
-          </h2>
-          <p>
-            Fully-typed real-time API with NoSQL database.
-          </p>
-        </a>
-      </div>
-    </main>
-  )
+  return (
+    <div>
+      <SearchBar
+        filterText={filterText}
+        activeOnly={activeOnly}
+        onFilterTextChange={setFilterText}
+        onActiveOnlyChange={setActiveOnly}
+      />
+      <ProductTable products={products} />
+    </div>
+  );
+}
+
+const PRODUCTS = [
+  {
+    Title: "National Survey of Student Engagement (NSSE)",
+    TargetPopulation: "First year and senior undergraduates",
+    Sponsor: "Amie Grills / Christine Mcguire",
+    Cycle: "Even Years",
+    active: true,
+  },
+  {
+    Title: "LGBTQIA+ Center Evaluation Survey",
+    TargetPopulation: "Faculty / Staff",
+    Sponsor: "Debbie Barzarsky",
+    Cycle: "New",
+    active: true,
+  },
+  {
+    Title: "HUB Survey",
+    TargetPopulation: "Undergraduates",
+    Sponsor: "Amanda Urias",
+    Cycle: "Annual",
+    active: false,
+  },
+  {
+    Title: "DEI Tech Collective Survey",
+    TargetPopulation: "Computing and Data Science Students",
+    Sponsor: "DEI Tech Collective",
+    Cycle: "Even Years",
+    active: true,
+  },
+  {
+    Title: "Sexual Misconduct and Harrassment Climate Survey",
+    TargetPopulation: "All Students",
+    Sponsor: "Committee on Sexual Assault and Harrassment Prevention (CSAHP)",
+    Cycle: "Every 4 Years",
+    active: true,
+  },
+  {
+    Title: "Healthy Minds Survey",
+    TargetPopulation: "All Students",
+    Sponsor: "Student Health Services",
+    Cycle: "Every 3 Years",
+    active: false,
+  },
+  {
+    Title: "Dining Services Survey",
+    TargetPopulation: "On-campus students",
+    Sponsor: "Dining Services",
+    Cycle: "TBD",
+    active: false,
+  },
+  {
+    Title: "University Housing Survey",
+    TargetPopulation: "Students in Housing",
+    Sponsor: "Housing Office",
+    Cycle: "TBD",
+    active: true,
+  },
+  {
+    Title: "Princeton Review",
+    TargetPopulation: "",
+    Sponsor: "",
+    Cycle: "",
+    active: true,
+  },
+  {
+    Title: "Sustainability",
+    TargetPopulation: "",
+    Sponsor: "",
+    Cycle: "",
+    active: true,
+  },
+  {
+    Title: "Community Safety Advisory Group",
+    TargetPopulation: "",
+    Sponsor: "",
+    Cycle: "",
+    active: false,
+  },
+  {
+    Title: "Belonging & Culture",
+    TargetPopulation: "",
+    Sponsor: "",
+    Cycle: "",
+    active: false,
+  },
+];
+
+export default function App() {
+  return <FilterableProductTable products={PRODUCTS} />;
 }
